@@ -66,21 +66,96 @@ struct cs {
 	string cs_name;
 	int workshops;
 	int active_workshops;
-	float effciency;
+	int effciency;
 };
+
+int int_check() {
+	int number = 0;
+	while (true) {
+		cin >> number;
+		if (cin.fail()) {
+			cout << "Error! Enter number" << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+		}
+		else {
+			if (number > 0) return number;
+			else {
+				cout << "Error! Enter number" << endl;
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
+		}
+	}
+}
+
+bool bool_check() {
+	bool flag = 0;
+	while (true) {
+		cin >> flag;
+		if (cin.fail()) {
+			cout << "Error! Choose 0 or 1" << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+		}
+		else return flag;
+	}
+}
+
+int workshops_check(int workshops) {
+	int number = 0;
+	while (true) {
+		cin >> number;
+		if (cin.fail()) {
+			cout << "Error! Enter number" << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+		}
+		else {
+			if (number <= workshops && number > 0) {
+				return number;
+			} else {
+				cout << "Error! The number of active workshops cannot be greater than the number of all workshops" << endl;
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
+		}
+	}
+}
+
+int effciency_check() {
+	int number = 0;
+	while (true) {
+		cin >> number;
+		if (cin.fail()) {
+			cout << "Error! Enter number" << endl;
+			cin.clear();
+			cin.ignore(1000, '\n');
+		}
+		else {
+			cs cs;
+			if (number <= 100 && number > 0) return number;
+			else {
+				cout << "Error! The number must be from 0 to 100" << endl;
+				cin.clear();
+				cin.ignore(1000, '\n');
+			}
+		}
+	}
+}
 
 void input_pipe() {
 	pipeline new_pipe;
 	cout << "Enter pipe name: "; cin >> new_pipe.pipe_name;
-	cout << "Enter pipe length: ";  cin >> new_pipe.pipe_length;
-	cout << "Enter pipe diameter: "; cin >> new_pipe.pipe_diameter;
-	cout << "Enter state in repair: "; cin >> new_pipe.pipe_state; cout << endl;
+	cout << "Enter pipe length: "; new_pipe.pipe_length = int_check();
+	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = int_check();
+	cout << "Enter state in repair: "; new_pipe.pipe_state = bool_check(); cout << endl;
 }
 
 void input_cs() {
 	cs new_cs;
 	cout << "Enter cs name: "; cin >> new_cs.cs_name;
-	cout << "Enter number of workshops: "; cin >> new_cs.workshops;
-	cout << "Enter number of active workshops: "; cin >> new_cs.active_workshops;
-	cout << "Enter effciency: "; cin >> new_cs.effciency; cout << endl;
+	cout << "Enter number of workshops: "; new_cs.workshops = int_check();
+	cout << "Enter number of active workshops: "; new_cs.active_workshops = workshops_check(new_cs.workshops);
+	cout << "Enter effciency: "; new_cs.effciency = effciency_check(); cout << endl;
 }
