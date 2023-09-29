@@ -1,0 +1,13 @@
+Pipe
+
+Name: name
+Length: 200
+Diameter: 30
+In repair: Yes
+
+CS
+
+Name: name2
+Workshops: 4
+Active workshops: 2
+Effciency: 34
