@@ -2,12 +2,12 @@ Pipe
 
 Name: name
 Length: 200
-Diameter: 30
+Diameter: 50
 In repair: Yes
 
 CS
 
-Name: name2
+CS_name: name_cs
 Workshops: 4
 Active workshops: 2
-Effciency: 34
+Effciency: 55

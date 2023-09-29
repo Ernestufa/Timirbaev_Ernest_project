@@ -195,25 +195,29 @@ void read_file(pipeline& pipe, cs& station) {
 	file.open("file.txt", ios::in);
 	if (file.is_open()) {
 		while (getline(file, line)) {
-					if (line.find("Name: ") != string::npos) pipe.pipe_name = split(line);
+			if (line.find("Name: ") != string::npos) pipe.pipe_name = split(line);
 
-					else if (line.find("Length: ") != string::npos) pipe.pipe_length = stoi(split(line));
+			else if (line.find("Length: ") != string::npos) pipe.pipe_length = stoi(split(line));
 
-					else if (line.find("Diameter: ") != string::npos) pipe.pipe_diameter = stod(split(line));
+			else if (line.find("Diameter: ") != string::npos) pipe.pipe_diameter = stoi(split(line));
 
-					else if (line.find("In repair: ") != string::npos) pipe.pipe_state = stoi(split(line));
+			else if (line.find("In repair: ") != string::npos) {
+				if (split(line) == "Yes") pipe.pipe_state = 1;
+				else pipe.pipe_state = 0;
+			}
 
-					else if (line.find("CS_name: ") != string::npos) station.cs_name = split(line);
+			else if (line.find("CS_name: ") != string::npos) station.cs_name = split(line);
 
-					else if (line.find("Workshops: ") != string::npos) station.workshops = stoi(split(line));
+			else if (line.find("Workshops: ") != string::npos) station.workshops = stoi(split(line));
 
-					else if (line.find("Active workshops: ") != string::npos) station.active_workshops = stoi(split(line));
+			else if (line.find("Active workshops: ") != string::npos) station.active_workshops = stoi(split(line));
 
-					else if (line.find("Effciency: ") != string::npos) station.effciency = stoi(split(line));
+			else if (line.find("Effciency: ") != string::npos) station.effciency = stoi(split(line));
 		}
+		file.close();
+		cout << endl;
 	}
-	else cout << "Error!" << endl;
-	file.close();
+	else cout << endl << "Error!" << endl << endl;
 }
 
 int main() {
