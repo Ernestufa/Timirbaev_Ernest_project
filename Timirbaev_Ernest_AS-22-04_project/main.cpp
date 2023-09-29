@@ -121,7 +121,7 @@ void show(pipeline pipe, cs station) {
 	if (pipe.pipe_name.empty()) cout << endl << "No added pipe!" << endl << endl;
 
 	else {
-		cout << endl << "Pipe" << endl
+		cout << endl << "Pipe" << endl << endl
 			<< "Name: " << pipe.pipe_name << endl
 			<< "Length: " << pipe.pipe_length << endl
 			<< "Diameter: " << pipe.pipe_diameter << endl;
@@ -131,7 +131,7 @@ void show(pipeline pipe, cs station) {
 	if (station.cs_name.empty()) cout << "No added cs!" << endl << endl;
 
 	else {
-		cout << "CS" << endl
+		cout << "CS" << endl << endl
 			<< "Name: " << station.cs_name << endl
 			<< "Workshops: " << station.workshops << endl
 			<< "Active workshops: " << station.active_workshops << endl
@@ -161,7 +161,7 @@ void write_file(pipeline pipe, cs station) {
 	if (pipe.pipe_name.empty() || station.cs_name.empty()) cout << endl << "Add a pipe and a cs before!" << endl << endl;
 	else {
 		ofstream file;
-		file.open("file.txt");
+		file.open("file.txt", ios::out);
 		if (file.is_open()) {
 			file << "Pipe" << endl << endl
 				<< "Name: " << pipe.pipe_name << endl
@@ -170,7 +170,7 @@ void write_file(pipeline pipe, cs station) {
 			if (pipe.pipe_state == 1) file << "In repair: Yes" << endl << endl;
 			else file << "In repair: No" << endl << endl;
 			file << "CS" << endl << endl
-				<< "Name: " << station.cs_name << endl
+				<< "CS_name: " << station.cs_name << endl
 				<< "Workshops: " << station.workshops << endl
 				<< "Active workshops: " << station.active_workshops << endl
 				<< "Effciency: " << station.effciency;
@@ -178,6 +178,42 @@ void write_file(pipeline pipe, cs station) {
 		}
 		file.close();
 	}
+}
+
+string split(string line) {
+	for (int i = 0; i < line.length(); i++) {
+		if (line[i] == ':') {
+			line.erase(0, i + 2);
+			return line;
+		}
+	}
+}
+
+void read_file(pipeline& pipe, cs& station) {
+	string line;
+	ifstream file;
+	file.open("file.txt", ios::in);
+	if (file.is_open()) {
+		while (getline(file, line)) {
+					if (line.find("Name: ") != string::npos) pipe.pipe_name = split(line);
+
+					else if (line.find("Length: ") != string::npos) pipe.pipe_length = stoi(split(line));
+
+					else if (line.find("Diameter: ") != string::npos) pipe.pipe_diameter = stod(split(line));
+
+					else if (line.find("In repair: ") != string::npos) pipe.pipe_state = stoi(split(line));
+
+					else if (line.find("CS_name: ") != string::npos) station.cs_name = split(line);
+
+					else if (line.find("Workshops: ") != string::npos) station.workshops = stoi(split(line));
+
+					else if (line.find("Active workshops: ") != string::npos) station.active_workshops = stoi(split(line));
+
+					else if (line.find("Effciency: ") != string::npos) station.effciency = stoi(split(line));
+		}
+	}
+	else cout << "Error!" << endl;
+	file.close();
 }
 
 int main() {
@@ -224,6 +260,7 @@ int main() {
 			write_file(pipe, cs);
 			break;
 		case 7:
+			read_file(pipe, cs);
 			break;
 		default:
 			cout << "Error! Try again" << endl << endl;
