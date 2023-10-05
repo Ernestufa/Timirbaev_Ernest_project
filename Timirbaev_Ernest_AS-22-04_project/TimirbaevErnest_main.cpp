@@ -18,22 +18,30 @@ struct cs {
 	int effciency;
 };
 
+bool check(string number) {
+	for (int i = 0; i < number.length(); i++) {
+		if (isdigit(number[i]) || number[i] == '-') continue;
+		else return false;
+	}
+	if (number.length() == 0) return false;
+	return true;
+}
+
 int int_check() {
 	int number = 0;
+	string input;
 	while (true) {
-		cin >> number;
-		if (cin.fail()) {
-			cout << "Error! Enter number" << endl;
-			cin.clear();
-			cin.ignore(1000, '\n');
-		}
-		else {
+		getline(cin, input);
+		if (check(input) == true) {
+			number = stoi(input);
 			if (number > 0) return number;
 			else {
-				cout << "Error! Enter number" << endl;
+				cout << "Error! Number less than 0" << endl;
 				cin.clear();
-				cin.ignore(1000, '\n');
 			}
+		} else {
+			cout << endl << "Error! Enter number" << endl;
+			cin.clear();
 		}
 	}
 }
@@ -46,34 +54,31 @@ bool bool_check() {
 			cout << "Error! Choose 0 or 1" << endl;
 			cin.clear();
 			cin.ignore(1000, '\n');
-		}
-		else return flag;
+		} else return flag;
 	}
 }
 
 int workshops_check(int workshops) {
+	string input;
 	int number = 0;
 	while (true) {
-		cin >> number;
-		if (cin.fail()) {
-			cout << "Error! Enter number" << endl;
-			cin.clear();
-			cin.ignore(1000, '\n');
-		}
-		else {
+		getline(cin, input);
+		if (check(input) == true) {
+			number = stoi(input);
 			if (number <= workshops && number >= 0) {
 				return number;
 			}
 			else if (number >= workshops) {
 				cout << "Error! The number of active workshops cannot be greater than the number of all workshops" << endl;
 				cin.clear();
-				cin.ignore(1000, '\n');
 			}
 			else {
 				cout << "Error! The number less than 0" << endl;
 				cin.clear();
-				cin.ignore(1000, '\n');
 			}
+		} else {
+			cout << endl << "Error! Enter number" << endl;
+			cin.clear();
 		}
 	}
 }
@@ -101,19 +106,21 @@ int effciency_check() {
 
 pipeline input_pipe() {
 	pipeline new_pipe;
-	cout << "Enter pipe name: "; cin >> new_pipe.pipe_name;
+	cout << "Enter pipe name: "; getline(cin, new_pipe.pipe_name);
 	cout << "Enter pipe length: "; new_pipe.pipe_length = int_check();
 	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = int_check();
 	cout << "Enter state in repair: "; new_pipe.pipe_state = bool_check(); cout << endl;
+	cin.ignore(1000, '\n');
 	return new_pipe;
 }
 
 cs input_cs() {
 	cs new_cs;
-	cout << "Enter cs name: "; cin >> new_cs.cs_name;
+	cout << "Enter cs name: "; getline(cin, new_cs.cs_name);
 	cout << "Enter number of workshops: "; new_cs.workshops = int_check();
 	cout << "Enter number of active workshops: "; new_cs.active_workshops = workshops_check(new_cs.workshops);
 	cout << "Enter effciency: "; new_cs.effciency = effciency_check(); cout << endl;
+	cin.ignore(1000, '\n');
 	return new_cs;
 }
 
@@ -145,6 +152,7 @@ void edit_pipe(pipeline& pipe) {
 		cout << "Enter new state: ";
 		pipe.pipe_state = bool_check();
 		cout << endl;
+		//cin.ignore(1000, '\n');
 	}
 }
 
@@ -154,6 +162,7 @@ void edit_cs(cs& station) {
 		cout << "Enter active workshops: ";
 		station.active_workshops = workshops_check(station.workshops);
 		cout << endl;
+		//cin.ignore(1000, '\n');
 	}
 }
 
@@ -174,9 +183,9 @@ void write_file(pipeline pipe, cs station) {
 				<< "Workshops: " << station.workshops << endl
 				<< "Active workshops: " << station.active_workshops << endl
 				<< "Effciency: " << station.effciency;
+			file.close();
 			cout << endl;
-		}
-		file.close();
+		} else cout << endl << "Error!" << endl << endl;
 	}
 }
 
@@ -216,11 +225,11 @@ void read_file(pipeline& pipe, cs& station) {
 		}
 		file.close();
 		cout << endl;
-	}
-	else cout << endl << "Error!" << endl << endl;
+	} else cout << endl << "Error!" << endl << endl;
 }
 
 int main() {
+	string input;
 	int number = 0;
 	cs cs;
 	pipeline pipe;
@@ -237,40 +246,46 @@ int main() {
 			<< "0 Exit" << endl << endl
 			<< "Enter the command number: ";
 
-		cin >> number;
-		if (cin.fail()) {
-			cout << "Error! Try again" << endl << endl;
+		getline(cin, input);
+		if (check(input) == true) {
+			number = stoi(input);
+
+
+			/*if (cin.fail()) {
+				cout << endl << "Error! Try again" << endl << endl;
+			} else*/
+			switch (number) {
+			case 0:
+				exit(0);
+			case 1:
+				pipe = input_pipe();
+				break;
+			case 2:
+				cs = input_cs();
+				break;
+			case 3:
+				show(pipe, cs);
+				break;
+			case 4:
+				edit_pipe(pipe);
+				break;
+			case 5:
+				edit_cs(cs);
+				break;
+			case 6:
+				write_file(pipe, cs);
+				break;
+			case 7:
+				read_file(pipe, cs);
+				break;
+			default:
+				cout << endl << "Error! Try again" << endl << endl;
+			}
 			cin.clear();
-		} else
-		switch (number) {
-		case 0:
-			exit(0);
-		case 1:
-			pipe = input_pipe();
-			break;
-		case 2:
-			cs = input_cs();
-			break;
-		case 3:
-			show(pipe, cs);
-			break;
-		case 4:
-			edit_pipe(pipe);
-			break;
-		case 5:
-			edit_cs(cs);
-			break;
-		case 6:
-			write_file(pipe, cs);
-			break;
-		case 7:
-			read_file(pipe, cs);
-			break;
-		default:
-			cout << "Error! Try again" << endl << endl;
+		} else {
+			cout << endl << "Error! Try again" << endl << endl;
+			cin.clear();
 		}
-		cin.clear();
-		cin.ignore(1000, '\n');
 	}
 	return 0; 
 }
