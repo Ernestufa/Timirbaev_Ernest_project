@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -47,14 +48,26 @@ int int_check() {
 }
 
 bool bool_check() {
+	string input;
+	int number;
 	bool flag = 0;
 	while (true) {
-		cin >> flag;
-		if (cin.fail()) {
+		getline(cin, input);
+		if (check(input) == true) {
+			number = stoi(input);
+			if (number == 0 || number == 1) {
+				flag = number;
+				return flag;
+			}
+			else {
+				cout << "Error! Choose 0 or 1" << endl;
+				cin.clear();
+			}
+		}
+		else {
 			cout << "Error! Choose 0 or 1" << endl;
 			cin.clear();
-			cin.ignore(1000, '\n');
-		} else return flag;
+		}
 	}
 }
 
@@ -83,7 +96,7 @@ int workshops_check(int workshops) {
 	}
 }
 
-int effciency_check() {
+int effciency_check() { //По возможности исправить
 	int number = 0;
 	while (true) {
 		cin >> number;
@@ -104,27 +117,22 @@ int effciency_check() {
 	}
 }
 
-pipeline input_pipe() {
-	pipeline new_pipe;
+void input_pipe(pipeline& new_pipe) {
 	cout << "Enter pipe name: "; getline(cin, new_pipe.pipe_name);
 	cout << "Enter pipe length: "; new_pipe.pipe_length = int_check();
 	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = int_check();
 	cout << "Enter state in repair: "; new_pipe.pipe_state = bool_check(); cout << endl;
-	cin.ignore(1000, '\n');
-	return new_pipe;
 }
 
-cs input_cs() {
-	cs new_cs;
+void input_cs(cs& new_cs) {
 	cout << "Enter cs name: "; getline(cin, new_cs.cs_name);
 	cout << "Enter number of workshops: "; new_cs.workshops = int_check();
 	cout << "Enter number of active workshops: "; new_cs.active_workshops = workshops_check(new_cs.workshops);
 	cout << "Enter effciency: "; new_cs.effciency = effciency_check(); cout << endl;
 	cin.ignore(1000, '\n');
-	return new_cs;
 }
 
-void show(pipeline pipe, cs station) {
+void show(const pipeline& pipe, const cs& station) {
 	if (pipe.pipe_name.empty()) cout << endl << "No added pipe!" << endl << endl;
 
 	else {
@@ -166,66 +174,91 @@ void edit_cs(cs& station) {
 	}
 }
 
-void write_file(pipeline pipe, cs station) {
-	if (pipe.pipe_name.empty() || station.cs_name.empty()) cout << endl << "Add a pipe and a cs before!" << endl << endl;
+void write_file(const pipeline& pipe, const cs& station) {
+	if (pipe.pipe_name.empty() && station.cs_name.empty()) cout << endl << "Add a pipe or a cs before!" << endl << endl;
 	else {
 		ofstream file;
 		file.open("file.txt", ios::out);
 		if (file.is_open()) {
-			file << "Pipe" << endl << endl
-				<< "Name: " << pipe.pipe_name << endl
-				<< "Length: " << pipe.pipe_length << endl
-				<< "Diameter: " << pipe.pipe_diameter << endl;
-			if (pipe.pipe_state == 1) file << "In repair: Yes" << endl << endl;
-			else file << "In repair: No" << endl << endl;
-			file << "CS" << endl << endl
-				<< "CS_name: " << station.cs_name << endl
-				<< "Workshops: " << station.workshops << endl
-				<< "Active workshops: " << station.active_workshops << endl
-				<< "Effciency: " << station.effciency;
+			if (pipe.pipe_name.empty() == 0 && station.cs_name.empty() == 0) {
+				file << "Pipe" << endl
+					<< pipe.pipe_name << endl
+					<< pipe.pipe_length << endl
+					<< pipe.pipe_diameter << endl
+					<< pipe.pipe_state << endl << endl;
+				file << "CS" << endl
+					<< station.cs_name << endl
+					<< station.workshops << endl
+					<< station.active_workshops << endl
+					<< station.effciency;
+			}
+			else if (pipe.pipe_name.empty() == 0 && station.cs_name.empty() == 1) {
+				file << "Pipe" << endl
+					<< pipe.pipe_name << endl
+					<< pipe.pipe_length << endl
+					<< pipe.pipe_diameter << endl
+					<< pipe.pipe_state << endl << endl;
+			}
+			else if (pipe.pipe_name.empty() == 1 && station.cs_name.empty() == 0) {
+				file << "CS" << endl
+					<< station.cs_name << endl
+					<< station.workshops << endl
+					<< station.active_workshops << endl
+					<< station.effciency;
+			}
 			file.close();
 			cout << endl;
 		} else cout << endl << "Error!" << endl << endl;
 	}
 }
 
-string split(string line) {
-	for (int i = 0; i < line.length(); i++) {
-		if (line[i] == ':') {
-			line.erase(0, i + 2);
-			return line;
-		}
-	}
-}
+//string split(string line) {
+//	for (int i = 0; i < line.length(); i++) {
+//		if (line[i] == ':') {
+//			line.erase(0, i + 2);
+//			return line;
+//		}
+//	}
+//}
 
 void read_file(pipeline& pipe, cs& station) {
 	string line;
+	string type = "Noun";
+	bool flag = false;
+	vector<string> data;
 	ifstream file;
 	file.open("file.txt", ios::in);
 	if (file.is_open()) {
 		while (getline(file, line)) {
-			if (line.find("Name: ") != string::npos) pipe.pipe_name = split(line);
-
-			else if (line.find("Length: ") != string::npos) pipe.pipe_length = stoi(split(line));
-
-			else if (line.find("Diameter: ") != string::npos) pipe.pipe_diameter = stoi(split(line));
-
-			else if (line.find("In repair: ") != string::npos) {
-				if (split(line) == "Yes") pipe.pipe_state = 1;
-				else pipe.pipe_state = 0;
+			data.push_back(line);
+		}
+		for (int i = 0; i < data.size(); i++) {
+			if (data[i].find("Pipe") != string::npos) {
+				type = "pipe";
+				flag = true;
 			}
-
-			else if (line.find("CS_name: ") != string::npos) station.cs_name = split(line);
-
-			else if (line.find("Workshops: ") != string::npos) station.workshops = stoi(split(line));
-
-			else if (line.find("Active workshops: ") != string::npos) station.active_workshops = stoi(split(line));
-
-			else if (line.find("Effciency: ") != string::npos) station.effciency = stoi(split(line));
+			else if (data[i].find("CS") != string::npos) {
+				type = "cs";
+				flag = true;
+			}
+			else if (type == "pipe" && flag == true) {
+				pipe.pipe_name = data[i];
+				pipe.pipe_diameter = stoi(data[i + 1]);
+				pipe.pipe_length = stoi(data[i + 2]);
+				pipe.pipe_state = stoi(data[i + 3]);
+				flag = false;
+			}
+			else if (type == "cs" && flag == true) {
+				station.cs_name = data[i];
+				station.workshops = stoi(data[i + 1]);
+				station.active_workshops = stoi(data[i + 2]);
+				station.effciency = stoi(data[i + 3]);
+				flag = false;
+			}
 		}
 		file.close();
-		cout << endl;
-	} else cout << endl << "Error!" << endl << endl;
+		cout << endl << "Successfully!" << endl << endl;
+	} else cout << endl << "Error! Not found file" << endl << endl;
 }
 
 int main() {
@@ -249,19 +282,14 @@ int main() {
 		getline(cin, input);
 		if (check(input) == true) {
 			number = stoi(input);
-
-
-			/*if (cin.fail()) {
-				cout << endl << "Error! Try again" << endl << endl;
-			} else*/
 			switch (number) {
 			case 0:
 				exit(0);
 			case 1:
-				pipe = input_pipe();
+				input_pipe(pipe);
 				break;
 			case 2:
-				cs = input_cs();
+				input_cs(cs);
 				break;
 			case 3:
 				show(pipe, cs);
