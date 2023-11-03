@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <typeinfo>
 
 using namespace std;
 
@@ -24,112 +25,50 @@ bool check(string number) {
 		if (isdigit(number[i]) || number[i] == '-') continue;
 		else return false;
 	}
-	if (number.length() == 0) return false;
+	if (number.length() == 0 || number == "-") return false;
 	return true;
 }
 
-int int_check() {
-	int number = 0;
+template <typename N>
+N GetCorrectNumber(N min, N max) {
 	string input;
-	while (true) {
-		getline(cin, input);
-		if (check(input) == true) {
-			number = stoi(input);
-			if (number > 0) return number;
-			else {
-				cout << "Error! Number less than 0" << endl;
-				cin.clear();
-			}
-		} else {
-			cout << endl << "Error! Enter number" << endl;
-			cin.clear();
-		}
+	while (getline(cin, input).fail() || check(input) == false || stoi(input) < min || stoi(input) > max) {
+		cout << endl << "Error! Try again: ";
 	}
+	return stoi(input);
 }
 
-bool bool_check() {
-	string input;
-	int number;
-	bool flag = 0;
-	while (true) {
-		getline(cin, input);
-		if (check(input) == true) {
-			number = stoi(input);
-			if (number == 0 || number == 1) {
-				flag = number;
-				return flag;
-			}
-			else {
-				cout << "Error! Choose 0 or 1" << endl;
-				cin.clear();
-			}
-		}
-		else {
-			cout << "Error! Choose 0 or 1" << endl;
-			cin.clear();
-		}
-	}
-}
+//template <typename T>
+//istream& operator >> (istream& in, T& s) {
+//	in >> s;
+//	return in;
+//}
 
 int workshops_check(int workshops) {
-	string input;
-	int number = 0;
 	while (true) {
-		getline(cin, input);
-		if (check(input) == true) {
-			number = stoi(input);
-			if (number <= workshops && number >= 0) {
-				return number;
-			}
-			else if (number >= workshops) {
-				cout << "Error! The number of active workshops cannot be greater than the number of all workshops" << endl;
-				cin.clear();
-			}
-			else {
-				cout << "Error! The number less than 0" << endl;
-				cin.clear();
-			}
-		} else {
-			cout << endl << "Error! Enter number" << endl;
-			cin.clear();
+		int number = GetCorrectNumber(0, 10000000);
+		if (number <= workshops) {
+			return number;
 		}
-	}
-}
-
-int effciency_check() { //По возможности исправить
-	int number = 0;
-	while (true) {
-		cin >> number;
-		if (cin.fail()) {
-			cout << "Error! Enter number" << endl;
-			cin.clear();
-			cin.ignore(1000, '\n');
-		}
-		else {
-			cs cs;
-			if (number <= 100 && number > 0) return number;
-			else {
-				cout << "Error! The number must be from 0 to 100" << endl;
-				cin.clear();
-				cin.ignore(1000, '\n');
-			}
+		else if (number >= workshops) {
+			cout << endl << "Error! The number of active workshops cannot be greater than the number of all workshops" << endl
+				<< "Try again: ";
 		}
 	}
 }
 
 void input_pipe(pipeline& new_pipe) {
-	cout << "Enter pipe name: "; getline(cin, new_pipe.pipe_name);
-	cout << "Enter pipe length: "; new_pipe.pipe_length = int_check();
-	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = int_check();
-	cout << "Enter state in repair: "; new_pipe.pipe_state = bool_check(); cout << endl;
+	cout << endl << "Enter pipe name: "; getline(cin, new_pipe.pipe_name);
+	cout << "Enter pipe length: "; new_pipe.pipe_length = GetCorrectNumber(1, 10000000);
+	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = GetCorrectNumber(1, 10000000); cout << endl;
+	new_pipe.pipe_state = 0;
 }
 
 void input_cs(cs& new_cs) {
-	cout << "Enter cs name: "; getline(cin, new_cs.cs_name);
-	cout << "Enter number of workshops: "; new_cs.workshops = int_check();
+	cout << endl << "Enter cs name: "; getline(cin, new_cs.cs_name);
+	cout << "Enter number of workshops: "; new_cs.workshops = GetCorrectNumber(1, 10000000);
 	cout << "Enter number of active workshops: "; new_cs.active_workshops = workshops_check(new_cs.workshops);
-	cout << "Enter effciency: "; new_cs.effciency = effciency_check(); cout << endl;
-	cin.ignore(1000, '\n');
+	cout << "Enter effciency(0-100): "; new_cs.effciency = GetCorrectNumber(1, 100); cout << endl;
 }
 
 void show(const pipeline& pipe, const cs& station) {
@@ -157,20 +96,18 @@ void show(const pipeline& pipe, const cs& station) {
 void edit_pipe(pipeline& pipe) {
 	if (pipe.pipe_name.empty()) cout << endl << "No added pipe!" << endl << endl;
 	else {
-		cout << "Enter new state: ";
-		pipe.pipe_state = bool_check();
+		cout << endl << "Enter new state: ";
+		pipe.pipe_state = GetCorrectNumber(0, 1);
 		cout << endl;
-		//cin.ignore(1000, '\n');
 	}
 }
 
 void edit_cs(cs& station) {
 	if (station.cs_name.empty()) cout << endl << "No added cs!" << endl << endl;
 	else {
-		cout << "Enter active workshops: ";
+		cout << endl << "Enter active workshops: ";
 		station.active_workshops = workshops_check(station.workshops);
 		cout << endl;
-		//cin.ignore(1000, '\n');
 	}
 }
 
@@ -212,15 +149,6 @@ void write_file(const pipeline& pipe, const cs& station) {
 	}
 }
 
-//string split(string line) {
-//	for (int i = 0; i < line.length(); i++) {
-//		if (line[i] == ':') {
-//			line.erase(0, i + 2);
-//			return line;
-//		}
-//	}
-//}
-
 void read_file(pipeline& pipe, cs& station) {
 	string line;
 	string type = "Noun";
@@ -261,11 +189,20 @@ void read_file(pipeline& pipe, cs& station) {
 	} else cout << endl << "Error! Not found file" << endl << endl;
 }
 
+pipeline& SelectPipe(vector <pipeline>& g) {
+	cout << endl << "Chosse pipe`s index: "; int index = GetCorrectNumber(0, int(g.size() - 1));
+	return g[index];
+}
+
+cs& SelectCS(vector <cs>& g) {
+	cout << endl << "Choose cs`s index: "; int index = GetCorrectNumber(0, int(g.size() - 1));
+	return g[index];
+}
+
+
 int main() {
-	string input;
-	int number = 0;
-	cs cs;
-	pipeline pipe;
+	vector <cs> cs_group;
+	vector <pipeline> pipe_group;
 
 	while (true) {
 
@@ -279,40 +216,36 @@ int main() {
 			<< "0 Exit" << endl << endl
 			<< "Enter the command number: ";
 
-		getline(cin, input);
-		if (check(input) == true) {
-			number = stoi(input);
-			switch (number) {
-			case 0:
-				exit(0);
-			case 1:
-				input_pipe(pipe);
-				break;
-			case 2:
-				input_cs(cs);
-				break;
-			case 3:
-				show(pipe, cs);
-				break;
-			case 4:
-				edit_pipe(pipe);
-				break;
-			case 5:
-				edit_cs(cs);
-				break;
-			case 6:
-				write_file(pipe, cs);
-				break;
-			case 7:
-				read_file(pipe, cs);
-				break;
-			default:
-				cout << endl << "Error! Try again" << endl << endl;
-			}
-			cin.clear();
-		} else {
+		switch (GetCorrectNumber(0, 7)) {
+		case 0:
+			exit(0);
+		case 1: {
+			pipeline pipe;
+			input_pipe(pipe);
+			break;
+		}
+		case 2: {
+			cs cs;
+			input_cs(cs);
+			break;
+		}
+		case 3:
+			show(SelectPipe(pipe_group), SelectCS(cs_group));
+			break;
+		case 4:
+			edit_pipe(SelectPipe(pipe_group));
+			break;
+		case 5:
+			edit_cs(SelectCS(cs_group));
+			break;
+		case 6:
+			write_file(SelectPipe(pipe_group), SelectCS(cs_group));
+			break;
+		case 7:
+			read_file(SelectPipe(pipe_group), SelectCS(cs_group));
+			break;
+		default:
 			cout << endl << "Error! Try again" << endl << endl;
-			cin.clear();
 		}
 	}
 	return 0; 
