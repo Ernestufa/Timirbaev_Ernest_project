@@ -1,251 +1,408 @@
-#include <iostream>
-#include <string>
-#include <fstream>
 #include <vector>
-#include <typeinfo>
+#include <format>
+#include <chrono>
+#include "Pipe.h"
+#include "Utils.h"
+#include "CS.h"
+#include <filesystem>
+
+
+#define CHOOSE() cout << endl << "Choose pipe or cs\n1 Pipe\n2 CS\n0 Exit\nEnter the command number: ";
+#define ENDL() cout << endl;
+
 
 using namespace std;
+using namespace chrono;
 
-struct pipeline {
-	string pipe_name;
-	int pipe_length;
-	double pipe_diameter;
-	bool pipe_state;
-};
 
-struct cs {
-	string cs_name;
-	int workshops;
-	int active_workshops;
-	int effciency;
-};
-
-bool check(string number) {
-	for (int i = 0; i < number.length(); i++) {
-		if (isdigit(number[i]) || number[i] == '-') continue;
-		else return false;
+template <typename T>
+int Select(vector <T>& g) {
+	cout << endl << "Input index: "; int index = GetCorrectNumber(1, int(g.size()));
+	if (index <= g.size()) {
+		return index - 1;
 	}
-	if (number.length() == 0 || number == "-") return false;
-	return true;
+	else {
+		cout << endl << "Error! Try again" << endl << endl;
+		Select(g);
+	}
 }
 
-template <typename N>
-N GetCorrectNumber(N min, N max) {
-	string input;
-	while (getline(cin, input).fail() || check(input) == false || stoi(input) < min || stoi(input) > max) {
-		cout << endl << "Error! Try again: ";
-	}
-	return stoi(input);
+
+template <typename T1, typename T2>
+using Filter = bool(*)(const T1& obgect, T2& param);
+
+
+template <typename T>
+bool CheckbyName(const T& object, string& param) {
+	return (object.Getname().find(param) != string::npos);
 }
 
-//template <typename T>
-//istream& operator >> (istream& in, T& s) {
-//	in >> s;
-//	return in;
-//}
+bool CheckRepair(const Pipe& object, bool& param) {
+	return (object.Getstate() == param);
+}
 
-int workshops_check(int workshops) {
+bool CheckProcent(const CS& object, int& param)
+{
+	float procent = float((object.Getworkshops() - object.Getactive_workshops())) / float(object.Getworkshops()) * 100;
+	return (procent >= param);
+}
+
+template <typename T1, typename T2>
+vector<int> FindbyFilter(const vector<T1>& group, Filter<T1, T2> f, T2& param) {
+	vector<int> result;
+	int i = 0;
+	for (auto& s : group) {
+		if (f(s, param)) {
+			result.push_back(i);
+		}
+		i++;
+	}
+
+	return result;
+}
+
+
+vector<int> search_pipe(vector <Pipe>& p) {
+
+	vector<int> find;
+
 	while (true) {
-		int number = GetCorrectNumber(0, 10000000);
-		if (number <= workshops) {
-			return number;
-		}
-		else if (number >= workshops) {
-			cout << endl << "Error! The number of active workshops cannot be greater than the number of all workshops" << endl
-				<< "Try again: ";
-		}
-	}
-}
 
-void input_pipe(pipeline& new_pipe) {
-	cout << endl << "Enter pipe name: "; getline(cin, new_pipe.pipe_name);
-	cout << "Enter pipe length: "; new_pipe.pipe_length = GetCorrectNumber(1, 10000000);
-	cout << "Enter pipe diameter: "; new_pipe.pipe_diameter = GetCorrectNumber(1, 10000000); cout << endl;
-	new_pipe.pipe_state = 0;
-}
+		cout << endl << "Choose" << endl
+			<< "1 Index search" << endl
+			<< "2 Search by name" << endl
+			<< "3 Search by 'In repair'" << endl
+			<< "0 Exit" << endl
+			<< "Enter the command number: ";
 
-void input_cs(cs& new_cs) {
-	cout << endl << "Enter cs name: "; getline(cin, new_cs.cs_name);
-	cout << "Enter number of workshops: "; new_cs.workshops = GetCorrectNumber(1, 10000000);
-	cout << "Enter number of active workshops: "; new_cs.active_workshops = workshops_check(new_cs.workshops);
-	cout << "Enter effciency(0-100): "; new_cs.effciency = GetCorrectNumber(1, 100); cout << endl;
-}
-
-void show(const pipeline& pipe, const cs& station) {
-	if (pipe.pipe_name.empty()) cout << endl << "No added pipe!" << endl << endl;
-
-	else {
-		cout << endl << "Pipe" << endl << endl
-			<< "Name: " << pipe.pipe_name << endl
-			<< "Length: " << pipe.pipe_length << endl
-			<< "Diameter: " << pipe.pipe_diameter << endl;
-		if (pipe.pipe_state == 1) cout << "In repair: Yes" << endl << endl;
-		else cout << "In repair: No" << endl << endl;
-	}
-	if (station.cs_name.empty()) cout << "No added cs!" << endl << endl;
-
-	else {
-		cout << "CS" << endl << endl
-			<< "Name: " << station.cs_name << endl
-			<< "Workshops: " << station.workshops << endl
-			<< "Active workshops: " << station.active_workshops << endl
-			<< "Effciency: " << station.effciency << endl << endl;
-	}
-}
-
-void edit_pipe(pipeline& pipe) {
-	if (pipe.pipe_name.empty()) cout << endl << "No added pipe!" << endl << endl;
-	else {
-		cout << endl << "Enter new state: ";
-		pipe.pipe_state = GetCorrectNumber(0, 1);
-		cout << endl;
-	}
-}
-
-void edit_cs(cs& station) {
-	if (station.cs_name.empty()) cout << endl << "No added cs!" << endl << endl;
-	else {
-		cout << endl << "Enter active workshops: ";
-		station.active_workshops = workshops_check(station.workshops);
-		cout << endl;
-	}
-}
-
-void write_file(const pipeline& pipe, const cs& station) {
-	if (pipe.pipe_name.empty() && station.cs_name.empty()) cout << endl << "Add a pipe or a cs before!" << endl << endl;
-	else {
-		ofstream file;
-		file.open("file.txt", ios::out);
-		if (file.is_open()) {
-			if (pipe.pipe_name.empty() == 0 && station.cs_name.empty() == 0) {
-				file << "Pipe" << endl
-					<< pipe.pipe_name << endl
-					<< pipe.pipe_length << endl
-					<< pipe.pipe_diameter << endl
-					<< pipe.pipe_state << endl << endl;
-				file << "CS" << endl
-					<< station.cs_name << endl
-					<< station.workshops << endl
-					<< station.active_workshops << endl
-					<< station.effciency;
-			}
-			else if (pipe.pipe_name.empty() == 0 && station.cs_name.empty() == 1) {
-				file << "Pipe" << endl
-					<< pipe.pipe_name << endl
-					<< pipe.pipe_length << endl
-					<< pipe.pipe_diameter << endl
-					<< pipe.pipe_state << endl << endl;
-			}
-			else if (pipe.pipe_name.empty() == 1 && station.cs_name.empty() == 0) {
-				file << "CS" << endl
-					<< station.cs_name << endl
-					<< station.workshops << endl
-					<< station.active_workshops << endl
-					<< station.effciency;
-			}
-			file.close();
+		switch (GetCorrectNumber(0, 3)) {
+		case 0:
 			cout << endl;
-		} else cout << endl << "Error!" << endl << endl;
+			return find;
+		case 1: {
+			if (p.size() != 0)
+				find.push_back(Select(p));
+			return find;
+		}
+		case 2: {
+			string name = "Unknown";
+			cout << endl << "Input name: ";
+			getline(cin, name);
+			LOG(name);
+			vector<int> find = FindbyFilter(p, CheckbyName, name);
+			return find;
+		}
+		case 3: {
+			bool state = 0;
+			cout << endl << "Input state: ";
+			state = GetCorrectNumber(0, 1);
+			vector<int> find = FindbyFilter(p, CheckRepair, state);
+			return find;
+		}
+		default:
+			cout << endl << "Error! Try again" << endl << endl;
+		}
 	}
 }
 
-void read_file(pipeline& pipe, cs& station) {
-	string line;
-	string type = "Noun";
-	bool flag = false;
-	vector<string> data;
-	ifstream file;
-	file.open("file.txt", ios::in);
-	if (file.is_open()) {
-		while (getline(file, line)) {
-			data.push_back(line);
+vector<int> search_cs(vector <CS>& cs) {
+
+	vector<int> find;
+
+	while (true) {
+
+		cout << endl << "Choose" << endl
+			<< "1 Index search" << endl
+			<< "2 Search by name" << endl
+			<< "3 Search by %" << endl
+			<< "0 Exit" << endl
+			<< "Enter the command number: ";
+
+		switch (GetCorrectNumber(0, 3)) {
+		case 0:
+			cout << endl;
+			return find;
+		case 1: {
+			if (cs.size() != 0)
+				find.push_back(Select(cs));
+			return find;
 		}
-		for (int i = 0; i < data.size(); i++) {
-			if (data[i].find("Pipe") != string::npos) {
-				type = "pipe";
-				flag = true;
-			}
-			else if (data[i].find("CS") != string::npos) {
-				type = "cs";
-				flag = true;
-			}
-			else if (type == "pipe" && flag == true) {
-				pipe.pipe_name = data[i];
-				pipe.pipe_diameter = stoi(data[i + 1]);
-				pipe.pipe_length = stoi(data[i + 2]);
-				pipe.pipe_state = stoi(data[i + 3]);
-				flag = false;
-			}
-			else if (type == "cs" && flag == true) {
-				station.cs_name = data[i];
-				station.workshops = stoi(data[i + 1]);
-				station.active_workshops = stoi(data[i + 2]);
-				station.effciency = stoi(data[i + 3]);
-				flag = false;
-			}
+		case 2: {
+			string name = "Unknown";
+			cout << endl << "Input name: ";
+			getline(cin, name);
+			LOG(name);
+			vector<int> find = FindbyFilter(cs, CheckbyName, name);
+			return find;
 		}
+		case 3: {
+			int procent = 50;
+			cout << endl << "Input procent (%>): ";
+			procent = GetCorrectNumber(0, 100);
+			vector<int> find = FindbyFilter(cs, CheckProcent, procent);
+			return find;
+		}
+		default:
+			cout << endl << "Error! Try again" << endl << endl;
+		}
+	}
+}
+
+
+void Show(vector <Pipe>& p, vector <CS>& cs) {
+
+	vector<int> find;
+
+	while (true) {
+
+		CHOOSE();
+
+		switch (GetCorrectNumber(0, 2)) {
+		case 0:
+			ENDL();
+			return;
+		case 1: {
+			find = search_pipe(p);
+			if (find.size() != 0) {
+				for (int i : find) {
+					p[i].show_pipe(p[i]);
+				};
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		case 2: {
+			find = search_cs(cs);
+			if (find.size() != 0) {
+				for (int i : find) {
+					cs[i].show_cs(cs[i]);
+				};
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		default:
+			cout << endl << "Error! Try again" << endl << endl;
+		}
+	}
+}
+
+
+void Edit(vector <Pipe>& p, vector <CS>& cs) {
+
+	vector<int> find;
+
+	while (true) {
+
+		CHOOSE();
+
+		switch (GetCorrectNumber(0, 2)) {
+		case 0:
+			ENDL();
+			return;
+		case 1: {
+			find = search_pipe(p);
+			if (find.size() != 0) {
+				cout << endl << "Enter new state: ";
+				int new_state = GetCorrectNumber(0, 1);
+				for (int i : find) {
+					p[i].edit_pipe(p[i], new_state);
+				};
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		case 2: {
+			find = search_cs(cs);
+			if (find.size() != 0) {
+				cout << endl << "Enter active workshops: ";
+				int new_workshops = GetCorrectNumber(0, 10000000);
+				for (int i : find) {
+					cs[i].edit_cs(cs[i], new_workshops);
+				};
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		default:
+			cout << endl << "Error! Try again" << endl << endl;
+
+		}
+	}
+}
+
+
+void Remove(vector <Pipe>& p, vector <CS>& cs) {
+
+	vector<int> find;
+
+	while (true) {
+
+		CHOOSE();
+
+		switch (GetCorrectNumber(0, 2)) {
+		case 0:
+			ENDL();
+			return;
+		case 1: {
+			find = search_pipe(p);
+			if (find.size() != 0) {
+				int count = 0;
+				for (int i : find) {
+					if (p.size() == 1)
+						p.erase(p.begin());
+					else
+						p.erase(p.begin() + i - count);
+					count++;
+				}
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		case 2: {
+			find = search_cs(cs);
+			if (find.size() != 0) {
+				int count = 0;
+				for (int i : find) {
+					if (cs.size() == 1)
+						cs.erase(cs.begin());
+					else
+						cs.erase(cs.begin() + i - count);
+					count++;
+				}
+			}
+			else cout << endl << "Not Found!" << endl;
+			ENDL();
+			return;
+		}
+		}
+	}
+}
+
+
+void Write(vector <Pipe>& p, vector <CS>& cs) {
+	if (p.size() != 0 or cs.size() != 0) {
+
+		cout << endl << "Write name of the file to save: ";
+		string name = "notfound.txt";
+		getline(cin, name);
+		LOG(name);
+
+		ofstream file;
+		file.open(name, ios::out);
+		file << p.size() << " " << cs.size() << endl;
+		for (auto& pipe : p) { file << pipe; }
+		for (auto& station : cs) { file << station; };
 		file.close();
-		cout << endl << "Successfully!" << endl << endl;
-	} else cout << endl << "Error! Not found file" << endl << endl;
+
+		cout << endl << "Successful save!" << endl;
+	}
+	else cout << endl << "No objects to save!" << endl;
+	ENDL();
 }
 
-pipeline& SelectPipe(vector <pipeline>& g) {
-	cout << endl << "Chosse pipe`s index: "; int index = GetCorrectNumber(0, int(g.size() - 1));
-	return g[index];
-}
 
-cs& SelectCS(vector <cs>& g) {
-	cout << endl << "Choose cs`s index: "; int index = GetCorrectNumber(0, int(g.size() - 1));
-	return g[index];
+void Read(vector <Pipe>& p, vector <CS>& cs) {
+	ifstream file;
+	string path = "C:/Users/timir/Documents/GitHub/Timirbaev_Ernest_project/Timirbaev_Ernest_AS-22-04_project/";
+	vector<filesystem::directory_entry> names;
+	int count = 0;
+	for (auto& name : filesystem::directory_iterator(path)) {
+		count++;
+		names.push_back(name);
+		cout << endl << count << ". " << name << endl;
+	}
+	cout << endl << "Choose the file: ";
+	int download = GetCorrectNumber(1, count);
+
+	p.clear();
+	cs.clear();
+	Pipe pipe;
+	CS station;
+	int count_pipes, count_cs;
+
+	file.open(names[download - 1]);
+	file >> count_pipes >> count_cs;
+
+	while (count_pipes--)
+	{
+		file >> pipe;
+		p.push_back(pipe);
+	}
+	while (count_cs--)
+	{
+		file >> station;
+		cs.push_back(station);
+	}
+	cout << endl << "Successful download!" << endl;
+	file.close();
+	ENDL();
 }
 
 
 int main() {
-	vector <cs> cs_group;
-	vector <pipeline> pipe_group;
+	redirect_output_wrapper cerr_out(cerr);
+	string time = format("{:%d_%m_%Y %H_%M_%OS}", system_clock::now());
+	ofstream logfile("log_" + time);
+	if (logfile)
+		cerr_out.redirect(logfile);
+
+	vector <CS> cs_group;
+	vector <Pipe> pipe_group;
 
 	while (true) {
 
 		cout << "1 Add pipe" << endl 
 			<< "2 Add CS" << endl
-			<< "3 View all objects" << endl
-			<< "4 Edit pipe" << endl
-			<< "5 Edit CS" << endl
+			<< "3 View objects" << endl
+			<< "4 Edit objects" << endl
+			<< "5 Remove"  << endl
 			<< "6 Save" << endl
 			<< "7 Download" << endl
 			<< "0 Exit" << endl << endl
 			<< "Enter the command number: ";
 
-		switch (GetCorrectNumber(0, 7)) {
+		switch (GetCorrectNumber(0, 8)) {
 		case 0:
 			exit(0);
 		case 1: {
-			pipeline pipe;
-			input_pipe(pipe);
+			Pipe pipe;
+			pipe = pipe.input_pipe(pipe);
+			pipe_group.push_back(pipe);
 			break;
 		}
 		case 2: {
-			cs cs;
-			input_cs(cs);
+			CS cs;
+			cs = cs.input_cs(cs);
+			cs_group.push_back(cs);
 			break;
 		}
-		case 3:
-			show(SelectPipe(pipe_group), SelectCS(cs_group));
+		case 3: {
+			Show(pipe_group, cs_group);
 			break;
-		case 4:
-			edit_pipe(SelectPipe(pipe_group));
+		}
+		case 4: {
+			Edit(pipe_group, cs_group);
 			break;
+		}
 		case 5:
-			edit_cs(SelectCS(cs_group));
+			Remove(pipe_group, cs_group);
 			break;
 		case 6:
-			write_file(SelectPipe(pipe_group), SelectCS(cs_group));
+			Write(pipe_group, cs_group);
 			break;
-		case 7:
-			read_file(SelectPipe(pipe_group), SelectCS(cs_group));
+		case 7: {
+			Read(pipe_group, cs_group);
 			break;
+		}
 		default:
-			cout << endl << "Error! Try again" << endl << endl;
+			cout << endl << "Error! Try again";
+			ENDL();
 		}
 	}
 	return 0; 
