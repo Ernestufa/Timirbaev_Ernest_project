@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "Utils.h"
 
 
 class Pipe
@@ -22,6 +23,7 @@ public:
 	void show_pipe(const Pipe& pipe);
 	void edit_pipe(Pipe& pipe, int new_state);
 
+	int GetID() const;
 	std::string Getname() const;
 	bool Getstate() const;
 

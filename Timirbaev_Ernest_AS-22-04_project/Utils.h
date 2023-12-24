@@ -3,6 +3,8 @@
 #include <string>
 
 #define LOG(log) std::cerr << log << std::endl;
+#define CHOOSE() cout << endl << "Choose pipe or cs\n1 Pipe\n2 CS\n0 Exit\nEnter the command number: ";
+#define ENDL() cout << endl;
 
 
 class redirect_output_wrapper

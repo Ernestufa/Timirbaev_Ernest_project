@@ -130,11 +130,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CS.cpp" />
+    <ClCompile Include="GTS.cpp" />
     <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="TimirbaevErnest_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CS.h" />
+    <ClInclude Include="GTS.h" />
     <ClInclude Include="Pipe.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

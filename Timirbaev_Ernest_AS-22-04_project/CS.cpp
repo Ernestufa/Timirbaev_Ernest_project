@@ -1,5 +1,4 @@
 #include "CS.h"
-#include "Utils.h"
 
 using namespace std;
 
@@ -34,6 +33,11 @@ void CS::edit_cs(CS& station, int new_workshops)
 {
     if (new_workshops <= CS::workshops)
         station.active_workshops = new_workshops;
+}
+
+int CS::GetID() const
+{
+    return id;
 }
 
 std::string CS::Getname() const

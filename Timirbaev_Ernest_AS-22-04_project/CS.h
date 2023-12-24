@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "Utils.h"
 
 
 class CS
@@ -22,6 +23,7 @@ public:
 	void show_cs(const CS& station);
 	void edit_cs(CS& station, int new_workshops);
 
+	int GetID() const;
 	std::string Getname() const;
 	int Getworkshops() const;
 	int Getactive_workshops() const;

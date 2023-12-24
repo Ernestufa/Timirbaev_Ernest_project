@@ -1,5 +1,4 @@
 #include "Pipe.h"
-#include "Utils.h"
 
 
 using namespace std;
@@ -35,6 +34,11 @@ void Pipe::show_pipe(const Pipe& pipe)
 void Pipe::edit_pipe(Pipe& pipe, int new_state)
 {
     pipe.pipe_state = new_state;
+}
+
+int Pipe::GetID() const
+{
+    return id;
 }
 
 std::string Pipe::Getname() const
