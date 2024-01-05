@@ -23,6 +23,11 @@ bool CheckProcent(const CS& object, int& param)
 	return (procent >= param);
 }
 
+bool CheckByDiameter(const Pipe& object, int& param)
+{
+	return object.GetDiameter() == param;
+}
+
 template <typename T1, typename T2>
 unordered_set<int> FindbyFilter(const unordered_map<int, T1>& group, Filter<T1, T2> f, T2& param) {
 	unordered_set<int> result;
@@ -51,7 +56,7 @@ unordered_set<int> GTS::search_pipe(unordered_map<int, Pipe>& p)
 		switch (GetCorrectNumber(0, 2)) {
 
 		case 0:
-			cout << endl;
+			ENDL();
 			return find;
 
 		case 1: {
@@ -93,7 +98,7 @@ unordered_set<int> GTS::search_cs(unordered_map<int, CS>& cs)
 		switch (GetCorrectNumber(0, 2)) {
 
 		case 0:
-			cout << endl;
+			ENDL();
 			return find;
 
 		case 1: {
@@ -120,8 +125,24 @@ unordered_set<int> GTS::search_cs(unordered_map<int, CS>& cs)
 	return unordered_set<int>();
 }
 
+template <typename T>
+int GTS::SearchId(unordered_map<int, T>& group) {
+	while (true) {
+		int id;
+		id = GetCorrectNumber(0, 1000000);
+		if (auto i = group.find(id); i != group.end()) { return id; }
+		else { cout << "ID not found! Please try again: "; }
+	}
+}
 
-void GTS::Show(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs)
+int GTS::SelectId(std::unordered_set<int>& group, int id)
+{
+	if (auto i = group.find(id); i != group.end()) { return id; }
+	else { cout << "ID not found! Please try again: "; }
+}
+
+
+void GTS::Show(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 {
 	unordered_set<int> find;
 
@@ -161,7 +182,7 @@ void GTS::Show(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs
 	}
 }
 
-void GTS::Edit(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs)
+void GTS::Edit(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 {
 	unordered_set<int> find;
 
@@ -206,7 +227,7 @@ void GTS::Edit(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs
 	}
 }
 
-void GTS::Remove(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs)
+void GTS::Remove(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 {
 	unordered_set<int> find;
 
@@ -244,7 +265,7 @@ void GTS::Remove(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& 
 	}
 }
 
-void GTS::Write(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs)
+void GTS::Write(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 {
 	if (p.size() != 0 or cs.size() != 0) {
 
@@ -266,7 +287,7 @@ void GTS::Write(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& c
 	ENDL();
 }
 
-void GTS::Read(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs)
+void GTS::Read(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 {
 	ifstream file;
 	string path = "C:/Users/timir/Documents/GitHub/Timirbaev_Ernest_project/Timirbaev_Ernest_AS-22-04_project/";
@@ -302,4 +323,145 @@ void GTS::Read(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs
 	cout << endl << "Successful download!" << endl;
 	file.close();
 	ENDL();
+}
+
+
+unordered_set<int> GTS::GetFreePipes(const unordered_set<int>& IDs)
+{
+	unordered_set<int> free_IDs;
+	for (auto& id : IDs) {
+		if (!connections.edges.contains(id)) {
+			free_IDs.insert(id);
+		}
+	}
+	return free_IDs;
+}
+
+void GTS::Menu(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
+{
+	cout << endl << "1 Add connection" << endl
+		<< "2 View connection" << endl
+		<< "3 Remove connection" << endl
+		<< "4 Topological sort" << endl
+		<< "5 ..." << endl
+		<< "6 ..." << endl
+		<< "0 Exit" << endl << endl
+		<< "Enter the command number: ";
+
+	switch (GetCorrectNumber(0, 6)) {
+	case 0:
+		ENDL();
+		return;
+	case 1:
+		Create_Connection(p, cs);
+		break;
+	case 2:
+		View_Connections();
+		break;
+	case 3:
+		Delete_Connection(p, cs);
+		break;
+	case 4:
+		TopologicalSort(p);
+		break;
+	case 5:
+		//..//
+		break;
+	case 6:
+		//..//
+		break;
+	default:
+		cout << endl << "Error! Try again" << endl << endl;
+	}
+}
+
+void GTS::Create_Connection(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
+{
+	if (cs.size() < 2) { cout << endl << "There are not enough stations to create a connection!" << endl; return; }
+	for (auto& station : cs) station.second.show_cs(station.second);
+	int start_station, terminal_station, pipe_id;
+	cout << "Enter the ID of the starting station: ";
+	start_station = SearchId(cs);
+	cout << "Enter the ID of the terminal station: ";
+	terminal_station = SearchId(cs);
+
+	if (connections.UncorrectNodes(start_station, terminal_station)) { return; }
+	cout << "Diameters of the pipes:" << endl << "1. 500" << endl << "2. 700" << endl << "3. 1000" << endl << "4. 1400" << endl
+		<< "Enter the diameter of the pipe (millimeters): ";
+	int diameter = GetCorrectNumber(0, 1400);
+	unordered_set<int> select_pipes = FindbyFilter(p, CheckByDiameter, diameter);
+	for (int i : select_pipes)
+		p[i].show_pipe(p[i]);
+	if (select_pipes.size()) {
+		cout << "Enter the ID of the pipe: ";
+		pipe_id = SelectId(select_pipes, SearchId(p));
+		select_pipes = GetFreePipes({ pipe_id });
+	}
+
+	if (!select_pipes.size()) {
+		cout << "The pipes have not been found or they are already in connection.\nDo you want to create such a pipe?\nNo(0), Yes(1): ";
+		if (!GetCorrectNumber(0, 1)) { return; }
+		else {
+			Pipe pipe;
+			pipe.add_pipe_with_diameter(pipe, diameter);
+			pipe_id = pipe.GetID();
+			p.insert({ pipe_id, pipe });
+			connections.CreateConnection(start_station, terminal_station, pipe_id);
+			return;
+		}
+	}
+	else {
+		connections.CreateConnection(start_station, terminal_station, pipe_id);
+		return;
+	}
+}
+
+void GTS::Delete_Connection(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
+{
+	if (connections.Empty()) {
+		cout << endl << "No connections available!" << endl;
+		return;
+	}
+
+	connections.ViewConnections();
+	cout << endl << "Delete connection by pipe ID (0) or by station ID (1): ";
+	switch (GetCorrectNumber(0, 1))
+	{
+	case 0:
+	{
+		cout << "Enter the pipe ID to remove the connection: ";
+		int id;
+		do {
+			id = SearchId(p);
+			if (!connections.edges.contains(id)) { cout << "There is no such ID among the pipes found! Enter it again." << endl; }
+		} while (!connections.edges.contains(id));
+		connections.DeleteConnection_ByPipeID(id);
+		break;
+	}
+	case 1:
+	{
+		cout << "Enter the station ID to remove the connection: ";
+		int id;
+		do {
+			id = SearchId(cs);
+			if (!connections.nodes.contains(id)) { cout << "There is no such ID among the stations found! Enter it again." << endl; }
+		} while (!connections.nodes.contains(id));
+		connections.DeleteConnection_ByStationID(id);
+		break;
+	}
+	default: { return; }
+	}
+}
+
+void GTS::TopologicalSort(unordered_map<int, Pipe>& p)
+{
+	if (connections.Empty()) { cout << endl << "No connections available!"; return; }
+	Graph graph = Graph(connections.edges, connections.nodes, p);
+	vector<int> result = graph.TopologicalSort();
+	if (!result.size()) { cout << "Topological sort: - " << endl; return; }
+	cout << "Topological sorting: ";
+	for (auto& i : result) {
+		cout << i << " ";
+	}
+	cout << endl;
 }
