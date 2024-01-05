@@ -32,4 +32,6 @@ public:
 	void View_Connections() { connections.ViewConnections(); }
 	void Delete_Connection(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs);
 	void TopologicalSort(std::unordered_map<int, Pipe>& p);
+	void ShortestPath(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs);
+	void MaxFlow(std::unordered_map<int, Pipe>& p, std::unordered_map<int, CS>& cs);
 };

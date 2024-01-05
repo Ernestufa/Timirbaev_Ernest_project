@@ -343,8 +343,8 @@ void GTS::Menu(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 		<< "2 View connection" << endl
 		<< "3 Remove connection" << endl
 		<< "4 Topological sort" << endl
-		<< "5 ..." << endl
-		<< "6 ..." << endl
+		<< "5 Shortest path" << endl
+		<< "6 Algorithm Ford-Falkerson" << endl
 		<< "0 Exit" << endl << endl
 		<< "Enter the command number: ";
 
@@ -365,14 +365,15 @@ void GTS::Menu(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
 		TopologicalSort(p);
 		break;
 	case 5:
-		//..//
+		ShortestPath(p, cs);
 		break;
 	case 6:
-		//..//
+		MaxFlow(p, cs);
 		break;
 	default:
 		cout << endl << "Error! Try again" << endl << endl;
 	}
+	ENDL();
 }
 
 void GTS::Create_Connection(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
@@ -464,4 +465,42 @@ void GTS::TopologicalSort(unordered_map<int, Pipe>& p)
 		cout << i << " ";
 	}
 	cout << endl;
+}
+
+void GTS::ShortestPath(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
+{
+	if (connections.Empty()) { cout << endl << "No connections available!"; return; }
+	Graph graph = Graph(connections.edges, connections.nodes, p);
+
+	connections.ViewConnections();
+	cout << "Enter the starting vertex of the path: ";
+	int StartNode = SearchId(cs);
+
+	cout << "Enter the final vertex of the path: ";
+	int EndNode = SearchId(cs);
+
+	vector<int> result = graph.Metod_Deikstra(StartNode, EndNode);
+	if (!result.size()) { cout << "Path: - "; return; }
+	cout << "Path: ";
+	for (auto& i : result) {
+		cout << i << " -> ";
+	}
+	cout << "End" << endl;
+	cout << "Path length: " << graph.Lenght_ShortestPath(result) << endl;
+}
+
+void GTS::MaxFlow(unordered_map<int, Pipe>& p, unordered_map<int, CS>& cs)
+{
+	if (connections.Empty()) { cout << endl << "No connections available!"; return; }
+	Graph graph = Graph(connections.edges, connections.nodes, p);
+
+	connections.ViewConnections();
+	cout << "Enter the starting vertex of the path: ";
+	int StartNode = SearchId(cs);
+
+	cout << "Enter the final vertex of the path: ";
+	int EndNode = SearchId(cs);
+
+	double result = graph.Ford_Fulkerson(StartNode, EndNode);
+	cout << "Maximum flow: " << result << endl;
 }
